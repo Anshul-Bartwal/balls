@@ -1,8 +1,10 @@
 import { ARENA_WIDTH, ARENA_HEIGHT } from "./arena";
 import { GameLoop } from "./gameloop";
 
-import { createBall } from "./ball";
+import { createBall,launchBall } from "./ball";
 import { updateBall } from "./physics";
+
+import { handleWallCollision } from "./collisionSystem";
 
 import { useRef,useEffect } from "react";
 export default function GameCanvas() {
@@ -16,6 +18,12 @@ export default function GameCanvas() {
 
         if (!ctx) return;
         const ball=createBall()
+
+        launchBall(ball,
+            Math.PI/6,
+            500
+        )
+
 
         const render = () => {
             ctx.clearRect(
@@ -59,6 +67,7 @@ export default function GameCanvas() {
 
         const gameloop = new GameLoop((deltatime) => {
             updateBall(ball,deltatime)
+            handleWallCollision(ball)
 
             render()
         });

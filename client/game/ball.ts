@@ -19,3 +19,13 @@ export function createBall():Ball {
         radius:20
     };
 }
+
+export function launchBall(
+        ball:Ball,
+        angle:number,
+        speed:number
+    ):void{
+
+        ball.vx=Math.cos(angle)*speed;
+        ball.vy=Math.sin(angle)*speed;
+}
