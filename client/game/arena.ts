@@ -1,0 +1,6 @@
+const ARENA_WIDTH = 800;
+const ARENA_HEIGHT = 600;
+export {
+    ARENA_HEIGHT,
+    ARENA_WIDTH
+}
