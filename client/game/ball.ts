@@ -29,3 +29,8 @@ export function launchBall(
         ball.vx=Math.cos(angle)*speed;
         ball.vy=Math.sin(angle)*speed;
 }
+
+export function stopBall(ball:Ball):void {
+    ball.vx=0;
+    ball.vy=0;
+}
