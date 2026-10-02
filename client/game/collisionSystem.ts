@@ -26,4 +26,19 @@ export function handleWallCollision(ball:Ball):void{
         ball.vy*=-1;
     }
 
+
+
+}
+
+export function handleBallCollisions(ball1:Ball,ball2:Ball):void{
+    const dx=ball1.x-ball2.x;
+    const dy=ball1.y-ball2.y;
+    const distanceSq=(dx*dx)+(dy*dy);
+    if(distanceSq<=ball1.radius*ball2.radius){
+        ball1.vx *= -1;
+        ball1.vy *= -1;
+        ball2.vx *= -1;
+        ball2.vy *= -1;
+    }
+
 }

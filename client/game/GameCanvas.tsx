@@ -1,14 +1,19 @@
 import { ARENA_WIDTH, ARENA_HEIGHT } from "./arena";
 import { GameLoop } from "./gameloop";
 
-import { createBall, launchBall } from "./ball";
+import { BallType,createBall, launchBall } from "./ball";
 import { updateBall } from "./physics";
 
 import { handleWallCollision } from "./collisionSystem";
 
 import { useRef, useEffect } from "react";
-
-export default function GameCanvas() {
+import { BALL_TYPES } from "./ballTypes";
+interface GameCanvasProps {
+    selectedBall: BallType;
+}
+export default function GameCanvas({
+    selectedBall,
+}: GameCanvasProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -18,8 +23,12 @@ export default function GameCanvas() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        const ballImage = new Image();
+        ballImage.src = BALL_TYPES[selectedBall].image;
+       
+
         const ball = createBall();
-        launchBall(ball, Math.PI / 6, 500);
+        launchBall(ball, Math.PI / 6, 150);
 
         const trail: Array<{ x: number; y: number; alpha: number; radius: number }> = [];
 
@@ -73,24 +82,34 @@ export default function GameCanvas() {
             ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
             ctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#ffffff";
-            ctx.shadowBlur = 26;
-            ctx.shadowColor = "#ffffff";
-            ctx.fill();
-            ctx.shadowBlur = 0;
+            // ctx.beginPath();
+            // ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            // ctx.fillStyle = "#ffffff";
+            // ctx.shadowBlur = 26;
+            // ctx.shadowColor = "#ffffff";
+            // ctx.fill();
+            // ctx.shadowBlur = 0;
 
-            ctx.beginPath();
-            ctx.arc(
-                ball.x - ball.radius * 0.38,
-                ball.y - ball.radius * 0.38,
-                ball.radius * 0.35,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
-            ctx.fill();
+            // ctx.beginPath();
+            // ctx.arc(
+            //     ball.x - ball.radius * 0.38,
+            //     ball.y - ball.radius * 0.38,
+            //     ball.radius * 0.35,
+            //     0,
+            //     Math.PI * 2
+            // );
+            // ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
+            // ctx.fill();
+            const imageSize = ball.radius * 4;
+            if( ballImage.complete && ballImage.naturalWidth>0){
+                ctx.drawImage(
+                    ballImage,
+                    ball.x- imageSize/2,
+                    ball.y- imageSize/2,
+                    imageSize,
+                    imageSize
+                );
+            }
         };
 
         const gameloop = new GameLoop((deltatime) => {
@@ -104,7 +123,7 @@ export default function GameCanvas() {
         return () => {
             gameloop.stop();
         };
-    }, []);
+    }, [selectedBall]);
 
     return <canvas ref={canvasRef} width={ARENA_WIDTH} height={ARENA_HEIGHT} />;
 }

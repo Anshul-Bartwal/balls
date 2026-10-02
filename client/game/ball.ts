@@ -1,3 +1,10 @@
+export type BallType =
+    | "iceball"
+    | "bomb"
+    | "daggerball"
+    | "overdrive"
+    | "dash";
+
 export interface Ball{
     x:number;
     y:number;
@@ -6,9 +13,11 @@ export interface Ball{
     vy:number;
 
     radius:number;
+
+    type:BallType;
 }
 
-export function createBall():Ball {
+export function createBall(type: BallType="iceball"):Ball {
     return{
         x:400,
         y:250,
@@ -16,7 +25,10 @@ export function createBall():Ball {
         vx:200,
         vy:150,
 
-        radius:20
+        radius:20,
+        type
+        
+
     };
 }
 
