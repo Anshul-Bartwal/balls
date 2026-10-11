@@ -22,6 +22,10 @@ export interface Ball{
     damage:number;       // outgoing damage multiplier
     alive:boolean;
     hitCooldown:number;  // seconds of damage immunity left
+    abilityCd:number;    // seconds until ability ready
+    slow:number;         // seconds of slow remaining
+    boost:number;        // seconds of speed boost remaining
+    boostScale:number;
 
     type:BallType;
 }
@@ -43,6 +47,10 @@ export function createBall(type: BallType="iceball", x=400, y=250):Ball {
         damage:s.damage,
         alive:true,
         hitCooldown:0,
+        abilityCd:0,
+        slow:0,
+        boost:0,
+        boostScale:1,
 
         type
     };

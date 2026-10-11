@@ -10,11 +10,11 @@ export const COMBAT = {
 export function applyCollisionDamage(a: Ball, b: Ball, impact: number): void {
     if (!a.alive || !b.alive || impact < COMBAT.MIN_IMPACT) return;
     const total = a.mass + b.mass;
-    hit(a, impact * COMBAT.DAMAGE_SCALE * b.damage * (2 * b.mass) / total);
-    hit(b, impact * COMBAT.DAMAGE_SCALE * a.damage * (2 * a.mass) / total);
+    dealDamage(a, impact * COMBAT.DAMAGE_SCALE * b.damage * (2 * b.mass) / total);
+    dealDamage(b, impact * COMBAT.DAMAGE_SCALE * a.damage * (2 * a.mass) / total);
 }
 
-function hit(t: Ball, amount: number): void {
+export function dealDamage(t: Ball, amount: number): void {
     if (t.hitCooldown > 0) return;
     t.health = Math.max(0, t.health - amount);
     t.hitCooldown = COMBAT.HIT_COOLDOWN;

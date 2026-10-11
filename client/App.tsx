@@ -2,6 +2,7 @@ import { useState } from "react";
 import GameCanvas from "./game/GameCanvas";
 import { BallType } from "./game/ball";
 import { BALL_TYPES } from "./game/ballTypes";
+import OnlineGame from "./game/OnlineGame";
 
 function App() {
   const [selectedBall, setSelectedBall] = useState<BallType>("iceball");
@@ -25,7 +26,7 @@ function App() {
                 )}
             </select>
 
-            <GameCanvas selectedBall={selectedBall} />
+            <OnlineGame selectedBall={selectedBall} />
         </div>
     );
 }
