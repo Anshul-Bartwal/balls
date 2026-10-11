@@ -1,3 +1,5 @@
+import { BALL_TYPES } from "./ballTypes";
+
 export type BallType =
     | "iceball"
     | "bomb"
@@ -13,22 +15,36 @@ export interface Ball{
     vy:number;
 
     radius:number;
+    mass:number;
+
+    health:number;
+    maxHealth:number;
+    damage:number;       // outgoing damage multiplier
+    alive:boolean;
+    hitCooldown:number;  // seconds of damage immunity left
 
     type:BallType;
 }
 
-export function createBall(type: BallType="iceball"):Ball {
+export function createBall(type: BallType="iceball", x=400, y=250):Ball {
+    const s = BALL_TYPES[type];
     return{
-        x:400,
-        y:250,
+        x,
+        y,
 
         vx:200,
         vy:150,
 
         radius:20,
-        type
-        
+        mass:s.mass,
 
+        health:s.maxHealth,
+        maxHealth:s.maxHealth,
+        damage:s.damage,
+        alive:true,
+        hitCooldown:0,
+
+        type
     };
 }
 

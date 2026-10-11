@@ -1,5 +1,6 @@
 import type { Ball } from "./ball";
 import { ARENA_HEIGHT,ARENA_WIDTH } from "./arena";
+import { applyCollisionDamage } from "./combat";
 
 export function handleWallCollision(ball:Ball):void{
     //left wall
@@ -25,20 +26,40 @@ export function handleWallCollision(ball:Ball):void{
         ball.y=ball.radius;
         ball.vy*=-1;
     }
-
-
-
 }
 
-export function handleBallCollisions(ball1:Ball,ball2:Ball):void{
-    const dx=ball1.x-ball2.x;
-    const dy=ball1.y-ball2.y;
-    const distanceSq=(dx*dx)+(dy*dy);
-    if(distanceSq<=ball1.radius*ball2.radius){
-        ball1.vx *= -1;
-        ball1.vy *= -1;
-        ball2.vx *= -1;
-        ball2.vy *= -1;
-    }
+// Elastic ball-ball collision (momentum + kinetic energy conserved), then damage.
+export function handleBallCollisions(a:Ball,b:Ball):void{
+    if(!a.alive || !b.alive) return;
 
+    const dx=b.x-a.x;
+    const dy=b.y-a.y;
+    const minDist=a.radius+b.radius;
+    const distSq=dx*dx+dy*dy;
+    if(distSq>=minDist*minDist) return;
+
+    const dist=Math.sqrt(distSq)||0.0001;
+    const nx=dx/dist;
+    const ny=dy/dist;
+
+    // push apart so they don't stay overlapped
+    const overlap=minDist-dist;
+    const invA=1/a.mass, invB=1/b.mass;
+    const sum=invA+invB;
+    a.x-=nx*overlap*(invA/sum);
+    a.y-=ny*overlap*(invA/sum);
+    b.x+=nx*overlap*(invB/sum);
+    b.y+=ny*overlap*(invB/sum);
+
+    // closing speed along the normal
+    const impact=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
+    if(impact<=0) return; // already separating
+
+    const j=(2*impact)/sum; // e = 1 (elastic)
+    a.vx-=j*invA*nx;
+    a.vy-=j*invA*ny;
+    b.vx+=j*invB*nx;
+    b.vy+=j*invB*ny;
+
+    applyCollisionDamage(a,b,impact);
 }
