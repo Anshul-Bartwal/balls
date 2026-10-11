@@ -11,6 +11,7 @@ export interface ProjSnap { x: number; y: number; radius: number }
 
 // Client -> Server (inputs only; the client never reports results)
 export type ClientMsg =
+    | { t: "auth"; pubkey: string; signature: string } // signature = base64
     | { t: "join"; ball: BallType }
     | { t: "angle"; angle: number }
     | { t: "ready" }
@@ -19,6 +20,9 @@ export type ClientMsg =
 
 // Server -> Client
 export type ServerMsg =
+    | { t: "challenge"; nonce: string }
+    | { t: "authed"; wallet: string; owned: BallType[] }
+    | { t: "error"; message: string }
     | { t: "waiting" }
     | { t: "matched"; you: 0 | 1 }
     | {

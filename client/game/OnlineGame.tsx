@@ -12,10 +12,39 @@ const WS_URL: string =
     (import.meta as any).env?.VITE_WS_URL ??
     `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8080`;
 
+const INTERP_DELAY = 100; // ms: render slightly in the past so we can blend between snapshots
+
+type Snap = { t: number; s: StateMsg };
+
+function sample(buf: Snap[]): StateMsg | null {
+    if (buf.length === 0) return null;
+    const last = buf[buf.length - 1];
+    const rt = performance.now() - INTERP_DELAY;
+    if (buf.length === 1 || rt >= last.t) return last.s;
+    if (rt <= buf[0].t) return buf[0].s;
+
+    let i = buf.length - 2;
+    while (i > 0 && buf[i].t > rt) i--;
+    const a = buf[i], b = buf[i + 1];
+    // don't blend across phase changes or big gaps (e.g. rematch reset)
+    if (a.s.phase !== b.s.phase || b.t - a.t > 200) return b.s;
+
+    const k = (rt - a.t) / (b.t - a.t);
+    const lerp = (p: number, q: number) => p + (q - p) * k;
+    return {
+        ...b.s,
+        balls: b.s.balls.map((bb, j) => ({ ...bb, x: lerp(a.s.balls[j].x, bb.x), y: lerp(a.s.balls[j].y, bb.y) })),
+        projectiles:
+            a.s.projectiles.length === b.s.projectiles.length
+                ? b.s.projectiles.map((pb, j) => ({ ...pb, x: lerp(a.s.projectiles[j].x, pb.x), y: lerp(a.s.projectiles[j].y, pb.y) }))
+                : b.s.projectiles,
+    };
+}
+
 export default function OnlineGame({ selectedBall }: { selectedBall: BallType }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
-    const snapRef = useRef<StateMsg | null>(null);
+    const bufRef = useRef<Snap[]>([]);
     const youRef = useRef<0 | 1>(0);
     const angleRef = useRef(15);
 
@@ -39,7 +68,8 @@ export default function OnlineGame({ selectedBall }: { selectedBall: BallType })
             else if (m.t === "matched") { youRef.current = m.you; setStatus("matched"); }
             else if (m.t === "opponent_left") setStatus("left");
             else if (m.t === "state") {
-                snapRef.current = m;
+                bufRef.current.push({ t: performance.now(), s: m });
+                if (bufRef.current.length > 30) bufRef.current.shift();
                 if (m.phase === "aiming") { angleRef.current = m.myAngle; setAngle(m.myAngle); }
                 setView(v =>
                     v.phase === m.phase && v.myReady === m.myReady && v.winner === m.winner
@@ -79,7 +109,7 @@ export default function OnlineGame({ selectedBall }: { selectedBall: BallType })
             ctx.strokeStyle = "#f4f4f5"; ctx.lineWidth = 8;
             ctx.strokeRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
 
-            const s = snapRef.current;
+            const s = sample(bufRef.current);
             if (!s) return;
             const you = youRef.current;
 

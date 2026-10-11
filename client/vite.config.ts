@@ -8,6 +8,6 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    allowedHosts: ["drum-surprised-natural-bidder.trycloudflare.com"],
+    allowedHosts: ["aware-repairs-commented-gamecube.trycloudflare.com"],
   },
 });
