@@ -1,10 +1,17 @@
+import http from "http";
 import { WebSocketServer } from "ws";
 import { Matchmaker } from "./matchmaking/Matchmaker";
 import { BALL_TYPES } from "../client/game/ballTypes";
 import type { ClientMsg } from "../shared/protocol";
 
-const PORT = Number(process.env.SERVER_PORT) || 8080;
-const wss = new WebSocketServer({ port: PORT });
+const PORT = Number(process.env.PORT || process.env.SERVER_PORT) || 8080;
+
+// HTTP server so hosts (Render/Railway/Fly) have a health check; WebSocket shares the port.
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("BALLS server ok");
+});
+const wss = new WebSocketServer({ server });
 const matchmaker = new Matchmaker();
 
 wss.on("connection", (ws) => {
@@ -23,4 +30,4 @@ wss.on("connection", (ws) => {
     ws.on("error", () => matchmaker.leave(ws));
 });
 
-console.log(`BALLS server listening on ws://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => console.log(`BALLS server listening on port ${PORT}`));

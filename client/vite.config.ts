@@ -7,4 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: ["drum-surprised-natural-bidder.trycloudflare.com"],
+  },
 });

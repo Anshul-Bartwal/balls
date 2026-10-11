@@ -8,7 +8,9 @@ import type { ClientMsg, ServerMsg } from "../../shared/protocol";
 type StateMsg = Extract<ServerMsg, { t: "state" }>;
 type Status = "connecting" | "waiting" | "matched" | "left" | "error";
 
-const WS_URL = (import.meta as any).env?.VITE_WS_URL ?? `ws://${location.hostname}:8080`;
+const WS_URL: string =
+    (import.meta as any).env?.VITE_WS_URL ??
+    `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8080`;
 
 export default function OnlineGame({ selectedBall }: { selectedBall: BallType }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: balls-server
+    runtime: node
+    plan: free
+    # Repo root is used on purpose: the server imports ../client/game and ../shared
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /
