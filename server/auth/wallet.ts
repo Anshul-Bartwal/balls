@@ -1,8 +1,18 @@
 import nacl from "tweetnacl";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { BALL_TYPES } from "../../client/game/ballTypes";
-import { BALL_MINTS } from "../../shared/ballMints";
+import { BALL_MINTS as FILE_MINTS } from "../../shared/ballMints";
 import type { BallType } from "../../client/game/ball";
+
+// Mint addresses: env var BALL_MINTS (JSON) wins, so no commit/redeploy is needed after minting.
+function loadMints(): Partial<Record<BallType, string>> {
+    if (process.env.BALL_MINTS) {
+        try { return JSON.parse(process.env.BALL_MINTS); }
+        catch { console.error("BALL_MINTS env var is not valid JSON"); }
+    }
+    return FILE_MINTS;
+}
+const BALL_MINTS = loadMints();
 
 const TOKEN_PROGRAM = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const connection = new Connection(process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com", "confirmed");
