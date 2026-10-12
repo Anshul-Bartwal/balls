@@ -8,6 +8,6 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    allowedHosts: ["aware-repairs-commented-gamecube.trycloudflare.com"],
+    allowedHosts: ["suffering-ian-corporation-logan.trycloudflare.com"],
   },
 });

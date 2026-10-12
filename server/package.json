@@ -7,8 +7,8 @@
     "mint": "tsx scripts/mintBalls.ts"
   },
   "dependencies": {
-    "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.95.3",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
     "@types/node": "^22.0.0",
     "@types/ws": "^8.5.12",
     "tsx": "^4.19.0",

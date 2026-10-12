@@ -2,37 +2,47 @@ import type { BallType } from "../game/ball";
 import { BALL_TYPES } from "../game/ballTypes";
 import { ABILITY_NAME, ABILITY_COOLDOWN } from "../game/abilities";
 
-interface Props {
-    owned: BallType[];
-    selected: BallType;
-    onSelect: (t: BallType) => void;
+const ALL = Object.keys(BALL_TYPES) as BallType[];
+const vals = Object.values(BALL_TYPES);
+const MAX = {
+    hp: Math.max(...vals.map(v => v.maxHealth)),
+    dmg: Math.max(...vals.map(v => v.damage)),
+    mass: Math.max(...vals.map(v => v.mass)),
+};
+
+function Stat({ label, pct }: { label: string; pct: number }) {
+    return (
+        <div className="stat">
+            <span>{label}</span>
+            <div className="track"><div className="fill" style={{ width: `${pct * 100}%` }} /></div>
+        </div>
+    );
 }
 
+interface Props { owned: BallType[]; selected: BallType; onSelect: (t: BallType) => void }
+
 export default function BallCards({ owned, selected, onSelect }: Props) {
-    if (owned.length === 0) return <p>Connect a wallet to see your balls.</p>;
     return (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            {owned.map((t) => {
+        <div className="cards">
+            {ALL.map((t) => {
                 const s = BALL_TYPES[t];
-                const active = t === selected;
+                const has = owned.includes(t);
                 return (
                     <button
                         key={t}
+                        disabled={!has}
                         onClick={() => onSelect(t)}
-                        style={{
-                            width: 150, padding: 10, borderRadius: 10, cursor: "pointer", textAlign: "left",
-                            background: "#14141c", color: "#eee",
-                            border: active ? "2px solid #4fc3f7" : "2px solid #333",
-                        }}
+                        className={`card ${has && t === selected ? "active" : ""} ${has ? "" : "locked"}`}
                     >
-                        <img src={s.image} alt={s.name} style={{ width: "100%", height: 90, objectFit: "contain" }} />
-                        <div style={{ fontWeight: 700, margin: "6px 0" }}>{s.name}</div>
-                        <div style={{ fontSize: 12, lineHeight: 1.5 }}>
-                            HP {s.maxHealth}<br />
-                            DMG x{s.damage}<br />
-                            Mass {s.mass}<br />
-                            {ABILITY_NAME[t]} ({ABILITY_COOLDOWN[t]}s)
+                        <div className="card-img">
+                            <img src={s.image} alt={s.name} />
+                            {!has && <span className="lock">LOCKED</span>}
                         </div>
+                        <div className="card-name">{s.name}</div>
+                        <Stat label="HP" pct={s.maxHealth / MAX.hp} />
+                        <Stat label="DMG" pct={s.damage / MAX.dmg} />
+                        <Stat label="MASS" pct={s.mass / MAX.mass} />
+                        <span className="chip">{ABILITY_NAME[t]} · {ABILITY_COOLDOWN[t]}s</span>
                     </button>
                 );
             })}
