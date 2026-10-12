@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import type { BallType } from "../game/ball";
-import { useOwnedBalls } from "../wallet/useOwnedBalls";
+import { useOwnedBalls } from "../game/useOwnedBalls";
 import BallCards from "./BallCards";
 import OnlineGame from "../game/OnlineGame";
 
