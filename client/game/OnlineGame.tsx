@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { ARENA_WIDTH, ARENA_HEIGHT } from "./arena";
 import type { BallType } from "./ball";
 import { BALL_TYPES } from "./ballTypes";
@@ -48,6 +49,14 @@ export default function OnlineGame({ selectedBall }: { selectedBall: BallType })
     const youRef = useRef<0 | 1>(0);
     const angleRef = useRef(15);
 
+    const { publicKey, signMessage } = useWallet();
+    // refs so the socket effect always sees the latest wallet without reconnecting
+    const keyRef = useRef(publicKey);
+    const signRef = useRef(signMessage);
+    keyRef.current = publicKey;
+    signRef.current = signMessage;
+
+    const [errMsg, setErrMsg] = useState("");
     const [status, setStatus] = useState<Status>("connecting");
     const [view, setView] = useState({ phase: "aiming", myReady: false, winner: null as StateMsg["winner"] });
     const [angle, setAngle] = useState(15);
@@ -59,12 +68,24 @@ export default function OnlineGame({ selectedBall }: { selectedBall: BallType })
     useEffect(() => {
         const ws = new WebSocket(WS_URL);
         wsRef.current = ws;
-        ws.onopen = () => send({ t: "join", ball: selectedBall });
         ws.onerror = () => setStatus("error");
         ws.onclose = () => setStatus(s => (s === "left" ? s : "error"));
         ws.onmessage = (e) => {
             const m: ServerMsg = JSON.parse(e.data);
-            if (m.t === "waiting") setStatus("waiting");
+            if (m.t === "challenge") {
+                // Server asks us to prove we own the wallet by signing the nonce.
+                (async () => {
+                    const key = keyRef.current, sign = signRef.current;
+                    if (!key || !sign) { setErrMsg("Your wallet can't sign messages."); setStatus("error"); return; }
+                    const sig = await sign(new TextEncoder().encode(`BALLS login\nnonce:${m.nonce}`));
+                    let bin = "";
+                    for (const byte of sig) bin += String.fromCharCode(byte);
+                    send({ t: "auth", pubkey: key.toBase58(), signature: btoa(bin) });
+                })().catch(() => { setErrMsg("Signature was rejected in the wallet."); setStatus("error"); });
+            }
+            else if (m.t === "authed") send({ t: "join", ball: selectedBall });
+            else if (m.t === "error") { setErrMsg(m.message); setStatus("error"); }
+            else if (m.t === "waiting") setStatus("waiting");
             else if (m.t === "matched") { youRef.current = m.you; setStatus("matched"); }
             else if (m.t === "opponent_left") setStatus("left");
             else if (m.t === "state") {
@@ -162,7 +183,7 @@ export default function OnlineGame({ selectedBall }: { selectedBall: BallType })
         status === "connecting" ? "Connecting..." :
         status === "waiting" ? "Waiting for an opponent..." :
         status === "left" ? "Opponent left. Refresh to find a new match." :
-        status === "error" ? "Cannot reach server (is it running on :8080?)" : "";
+        status === "error" ? (errMsg || "Cannot reach server (is it running on :8080?)") : "";
 
     return (
         <div>
